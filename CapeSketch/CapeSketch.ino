@@ -8,7 +8,7 @@
 // Columns were alternated between running up the cape and down the cape for wiring purposes. With this on, every other row will have the output flipped.
 #define ALTERNATE_COLUMNS 1
 #define DELAY 0
-#define COLORCYCLEAMOUNT 64
+#define COLORCYCLEAMOUNT 16
 #define SIZEX 7
 #define SIZEY 10
 byte world[SIZEX][SIZEY][3];
@@ -78,25 +78,30 @@ void loop() {
   //g = random(255);
   //b = random(255);
   
-  // Display current generation  
+  
+  // Fade out old generation
   for(i = 0; i<COLORCYCLEAMOUNT; i++) {
     for (j = 0; j < SIZEX; j++) {
       for (k = 0; k < SIZEY; k++) {
-        if(world[j][k][2] && !world[j][k][0]) {
+        if (world[j][k][2] && world[j][k][0]) {
+          //setGridPixelColor(j, k, strip.Color((i*oldR)/COLORCYCLEAMOUNT, (i*g)/COLORCYCLEAMOUNT, (i*b)/COLORCYCLEAMOUNT));
+        } else if (world[j][k][2]) {
           setGridPixelColor(j, k, strip.Color(oldR - (oldR * i) / COLORCYCLEAMOUNT, oldG - (oldG * i) / COLORCYCLEAMOUNT, oldB - (oldB * i) / COLORCYCLEAMOUNT));
-        } else if (world[j][k][2] && world[j][k][0]) {
-          setGridPixelColor(j, k, strip.Color((i*r)/COLORCYCLEAMOUNT, (i*g)/COLORCYCLEAMOUNT, (i*b)/COLORCYCLEAMOUNT));
-        } else if (world[j][k][0]) {
-          setGridPixelColor(j, k, strip.Color((i*r)/COLORCYCLEAMOUNT, (i*g)/COLORCYCLEAMOUNT, (i*b)/COLORCYCLEAMOUNT));
-        } else { 
+        } else {
+          setGridPixelColor(j, k, strip.Color(0, 0, 0));
         }
       }
     }
   }
-  for (j = 0; j < SIZEX; j++) {
-    for (k = 0; k < SIZEY; k++) {
-      if (!world[j][k][0]) {
-        setGridPixelColor(j, k, strip.Color(0, 0, 0));
+  // Display current generation
+  for(i = 0; i<COLORCYCLEAMOUNT; i++) {
+    for (j = 0; j < SIZEX; j++) {
+      for (k = 0; k < SIZEY; k++) {
+        if (world[j][k][0]) {
+          setGridPixelColor(j, k, strip.Color((i*r)/COLORCYCLEAMOUNT, (i*g)/COLORCYCLEAMOUNT, (i*b)/COLORCYCLEAMOUNT));
+        } else { 
+          setGridPixelColor(j, k, strip.Color(0, 0, 0));
+        }
       }
     }
   }
