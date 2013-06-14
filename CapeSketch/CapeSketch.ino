@@ -37,19 +37,16 @@ void setup() {
       else {
         world[i][j][0] = 0;
       }
-      world[i][j][0] = 0;
       world[i][j][1] = 0;
     }
   }
+  // Test Glider. These coordinates will likely be used later in generating interesting elements in the game.
   /*world[1][2][0] = 1;
   world[2][3][0] = 1;
   world[3][1][0] = 1;
   world[3][2][0] = 1;
   world[3][3][0] = 1;*/
-  
-  /*world[1][4][0] = 1;
-  world[1][5][0] = 1;
-  world[2][4][0] = 1;*/
+
   oldColor = random(255);
 }
  
