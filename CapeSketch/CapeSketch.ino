@@ -8,10 +8,10 @@
 // Columns were alternated between running up the cape and down the cape for wiring purposes. With this on, every other row will have the output flipped.
 #define ALTERNATE_COLUMNS 1
 #define DELAY 0
-#define COLORCYCLEAMOUNT 8
+#define COLORCYCLEAMOUNT 32
 #define SIZEX 6
 #define SIZEY 10
-byte world[SIZEX][SIZEY][3], oldColor;
+byte world[SIZEX][SIZEY][3], oldColor, rgbOld[3], rgbNew[3];
 boolean firstCycle = true;
 long density = 22;
  
@@ -36,15 +36,20 @@ void setup() {
       else {
         world[i][j][0] = 0;
       }
-      //world[i][j][0] = 0;
+      world[i][j][0] = 0;
       world[i][j][1] = 0;
     }
   }
-  //world[1][5][0] = 1;
-  //world[2][6][0] = 1;
-  //world[3][4][0] = 1;
-  //world[3][5][0] = 1;
-  //world[3][6][0] = 1;
+  /*world[1][5][0] = 1;
+  world[2][4][0] = 1;
+  world[2][5][0] = 1;
+  world[3][4][0] = 1;
+  world[3][5][0] = 1;
+  world[4][4][0] = 1;*/
+  
+  world[0][4][0] = 1;
+  world[0][5][0] = 1;
+  world[1][4][0] = 1;
   oldColor = random(255);
 }
  
@@ -52,12 +57,11 @@ void loop() {
   // Some example procedures showing how to display to the pixels:
   //colorWipe(strip.Color(255, 0, 0), 50); // Red
   //colorWipe(strip.Color(0, 255, 0), 50); // Green
-  byte rgbOld[3], rgbNew[3];
   uint16_t i, j, k;
-  byte newColor = oldColor + 1;
+  byte newColor = oldColor + 4;
   Wheel(oldColor & 255, rgbOld);
   Wheel(newColor & 255, rgbNew);
-  
+  oldColor = newColor;
   // Fade out old generation
   for(i = 0; i<COLORCYCLEAMOUNT; i++) {
     for (j = 0; j < SIZEX; j++) {
@@ -74,8 +78,10 @@ void loop() {
   for(i = 0; i<COLORCYCLEAMOUNT; i++) {
     for (j = 0; j < SIZEX; j++) {
       for (k = 0; k < SIZEY; k++) {
-        if (world[j][k][0]) {
+        if (world[j][k][0] && !world[j][k][2]) {
           setGridPixelColor(j, k, strip.Color((i*rgbNew[0])/COLORCYCLEAMOUNT, (i*rgbNew[1])/COLORCYCLEAMOUNT, (i*rgbNew[2])/COLORCYCLEAMOUNT));
+        } else if( world[j][k][0] && world[j][k][2]){
+          setGridPixelColor(j, k, strip.Color(rgbNew[0], rgbNew[1], rgbNew[2]));
         } else { 
           setGridPixelColor(j, k, strip.Color(0, 0, 0));
         }
@@ -83,8 +89,6 @@ void loop() {
     }
   }
   delay(DELAY);
-  
-  oldColor = oldColor + 16;
   
   // Birth and death cycle
   for (int x = 0; x < SIZEX; x++) {
