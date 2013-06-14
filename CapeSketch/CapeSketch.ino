@@ -8,11 +8,10 @@
 // Columns were alternated between running up the cape and down the cape for wiring purposes. With this on, every other row will have the output flipped.
 #define ALTERNATE_COLUMNS 1
 #define DELAY 0
-#define COLORCYCLEAMOUNT 16
-#define SIZEX 7
+#define COLORCYCLEAMOUNT 8
+#define SIZEX 6
 #define SIZEY 10
-byte world[SIZEX][SIZEY][3];
-int oldR, oldG, oldB;
+byte world[SIZEX][SIZEY][3], oldColor;
 boolean firstCycle = true;
 long density = 22;
  
@@ -41,54 +40,32 @@ void setup() {
       world[i][j][1] = 0;
     }
   }
-  oldR = random(255);
-  oldG = random(255);
-  oldB = random(255);
   //world[1][5][0] = 1;
   //world[2][6][0] = 1;
   //world[3][4][0] = 1;
   //world[3][5][0] = 1;
   //world[3][6][0] = 1;
+  oldColor = random(255);
 }
  
 void loop() {
   // Some example procedures showing how to display to the pixels:
   //colorWipe(strip.Color(255, 0, 0), 50); // Red
   //colorWipe(strip.Color(0, 255, 0), 50); // Green
+  byte rgbOld[3], rgbNew[3];
   uint16_t i, j, k;
-  int r, g, b;
-  r = oldR;
-  g = oldG;
-  b = oldB;
-  
- switch(random(3)) {
-    case 0:
-    r = oldR + random(COLORCYCLEAMOUNT);
-    break;
-    
-    case 1:
-    g = oldG + random(COLORCYCLEAMOUNT);
-    break;
-    
-    case 2:
-    b = oldB + random(COLORCYCLEAMOUNT);
-    break;
-  } 
-  //r = random(255);
-  //g = random(255);
-  //b = random(255);
-  
+  byte newColor = oldColor + 1;
+  Wheel(oldColor & 255, rgbOld);
+  Wheel(newColor & 255, rgbNew);
   
   // Fade out old generation
   for(i = 0; i<COLORCYCLEAMOUNT; i++) {
     for (j = 0; j < SIZEX; j++) {
       for (k = 0; k < SIZEY; k++) {
-        if (world[j][k][2] && world[j][k][0]) {
-          //setGridPixelColor(j, k, strip.Color((i*oldR)/COLORCYCLEAMOUNT, (i*g)/COLORCYCLEAMOUNT, (i*b)/COLORCYCLEAMOUNT));
-        } else if (world[j][k][2]) {
-          setGridPixelColor(j, k, strip.Color(oldR - (oldR * i) / COLORCYCLEAMOUNT, oldG - (oldG * i) / COLORCYCLEAMOUNT, oldB - (oldB * i) / COLORCYCLEAMOUNT));
+        if (world[j][k][2] && !world[j][k][0]) {
+          setGridPixelColor(j, k, strip.Color(rgbOld[0] - (rgbOld[0] * i) / COLORCYCLEAMOUNT, rgbOld[1] - (rgbOld[1] * i) / COLORCYCLEAMOUNT, rgbOld[2] - (rgbOld[2] * i) / COLORCYCLEAMOUNT));
         } else {
-          setGridPixelColor(j, k, strip.Color(0, 0, 0));
+          //setGridPixelColor(j, k, strip.Color(0, 0, 0));
         }
       }
     }
@@ -98,7 +75,7 @@ void loop() {
     for (j = 0; j < SIZEX; j++) {
       for (k = 0; k < SIZEY; k++) {
         if (world[j][k][0]) {
-          setGridPixelColor(j, k, strip.Color((i*r)/COLORCYCLEAMOUNT, (i*g)/COLORCYCLEAMOUNT, (i*b)/COLORCYCLEAMOUNT));
+          setGridPixelColor(j, k, strip.Color((i*rgbNew[0])/COLORCYCLEAMOUNT, (i*rgbNew[1])/COLORCYCLEAMOUNT, (i*rgbNew[2])/COLORCYCLEAMOUNT));
         } else { 
           setGridPixelColor(j, k, strip.Color(0, 0, 0));
         }
@@ -107,10 +84,8 @@ void loop() {
   }
   delay(DELAY);
   
-  oldR = r;
-  oldG = g;
-  oldB = b;
- 
+  oldColor = oldColor + 16;
+  
   // Birth and death cycle
   for (int x = 0; x < SIZEX; x++) {
     for (int y = 0; y < SIZEY; y++) {
@@ -161,14 +136,20 @@ void setGridPixelColor(int x, int y, uint32_t c) {
  
 // Input a value 0 to 255 to get a color value.
 // The colours are a transition r - g - b - back to r.
-uint32_t Wheel(byte WheelPos) {
+void Wheel(byte WheelPos, byte rgb[]) {
   if(WheelPos < 85) {
-   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+    rgb[0] = WheelPos * 3;
+    rgb[1] = 255 - WheelPos * 3;
+    rgb[2] = 0;
   } else if(WheelPos < 170) {
    WheelPos -= 85;
-   return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+   rgb[0] = 255 - WheelPos * 3;
+   rgb[1] = 0;
+   rgb[2] = WheelPos * 3;
   } else {
    WheelPos -= 170;
-   return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+   rgb[0] = 0;
+   rgb[1] = WheelPos * 3;
+   rgb[2] = 255 - WheelPos * 3;
   }
 }
