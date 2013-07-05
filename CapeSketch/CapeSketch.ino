@@ -9,9 +9,8 @@
 #define ALTERNATE_COLUMNS 1
 #define DELAY 0
 #define COLORCYCLEAMOUNT 32
-#define SIZEX 8
-#define SIZEY 12
-#define NUMPIXELS 60
+#define SIZEX 6
+#define SIZEY 10
 byte world[SIZEX][SIZEY][3], oldColor, rgbOld[3], rgbNew[3];
 boolean firstCycle = true;
 long density = 22;
@@ -23,7 +22,7 @@ long density = 22;
 //   NEO_GRB     Pixels are wired for GRB bitstream
 //   NEO_KHZ400  400 KHz bitstream (e.g. FLORA pixels)
 //   NEO_KHZ800  800 KHz bitstream (e.g. High Density LED strip)
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, 6, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, 6, NEO_GRB + NEO_KHZ800);
  
 void setup() {
   strip.begin();
@@ -37,16 +36,16 @@ void setup() {
       else {
         world[i][j][0] = 0;
       }
+      //world[i][j][0] = 0;
       world[i][j][1] = 0;
     }
   }
-  // Test Glider. These coordinates will likely be used later in generating interesting elements in the game.
-  /*world[1][2][0] = 1;
-  world[2][3][0] = 1;
-  world[3][1][0] = 1;
-  world[3][2][0] = 1;
-  world[3][3][0] = 1;*/
-
+  /*world[1][5][0] = 1;
+  world[2][4][0] = 1;
+  world[2][5][0] = 1;
+  world[3][4][0] = 1;
+  world[3][5][0] = 1;
+  world[4][4][0] = 1;*/
   oldColor = random(255);
 }
  
@@ -61,8 +60,8 @@ void loop() {
   oldColor = newColor;
   // Fade out old generation
   for(i = 0; i<COLORCYCLEAMOUNT; i++) {
-    for (j = 1; j < SIZEX; j++) {
-      for (k = 1; k < SIZEY; k++) {
+    for (j = 0; j < SIZEX; j++) {
+      for (k = 0; k < SIZEY; k++) {
         if (world[j][k][2] && !world[j][k][0]) {
           setGridPixelColor(j, k, strip.Color(rgbOld[0] - (rgbOld[0] * i) / COLORCYCLEAMOUNT, rgbOld[1] - (rgbOld[1] * i) / COLORCYCLEAMOUNT, rgbOld[2] - (rgbOld[2] * i) / COLORCYCLEAMOUNT));
         } else {
@@ -73,8 +72,8 @@ void loop() {
   }
   // Display current generation
   for(i = 0; i<COLORCYCLEAMOUNT; i++) {
-    for (j = 1; j < SIZEX; j++) {
-      for (k = 1; k < SIZEY; k++) {
+    for (j = 0; j < SIZEX; j++) {
+      for (k = 0; k < SIZEY; k++) {
         if (world[j][k][0] && !world[j][k][2]) {
           setGridPixelColor(j, k, strip.Color((i*rgbNew[0])/COLORCYCLEAMOUNT, (i*rgbNew[1])/COLORCYCLEAMOUNT, (i*rgbNew[2])/COLORCYCLEAMOUNT));
         } else if( world[j][k][0] && world[j][k][2]){
@@ -114,24 +113,66 @@ void loop() {
 }
  
 int neighbours(int x, int y) {
- return  world[(x + 1)][y][0] + world[(x + 1)][(y + 1)][0] +
+  
+  // Upper left, upper right, lower left, lower right, left, right, down, up.
+  if (x == 0 && y == 0) {
+    return world[(x + 1)][y][0] + world[(x + 1)][(y + 1)][0] + 
+        0 + 0 + 
+        world[x][(y + 1)][0] + 0 + 
+        0 + 0;
+  } else if (x == 5 && y == 0) {
+    return  0 + 0 + 
+        world[(x - 1)][y][0] + world[(x - 1)][(y + 1)][0] + 
+        world[x][(y + 1)][0] + 0 + 
+        0 + 0;
+  } else if (x == 0 && y == 9) {
+    return  world[(x + 1)][y][0] + 0 + 
+        0 + 0 + 
+        0 + world[(x + 1)][(y - 1)][0] + 
+        world[x][(y - 1)][0] + 0;
+  } else if (x == 5 && y == 9) {
+    return  0 + 0 + 
+        world[(x - 1)][y][0] + 0 + 
+        0 + 0 + 
+        world[x][(y - 1)][0] + world[(x - 1)][(y - 1)][0];
+  } else if (x == 0) {
+    return  world[(x + 1)][y][0] + world[(x + 1)][(y + 1)][0] + 
+        0 + 0 + 
+        world[x][(y + 1)][0] + world[(x + 1)][(y - 1)][0] + 
+        world[x][(y - 1)][0] + 0;
+  } else if (x == 5) {
+    return  0 + 0 + 
+        world[(x - 1)][y][0] + world[(x - 1)][(y + 1)][0] +  
+        world[x][(y + 1)][0] + 0 + 
+        world[x][(y - 1)][0] + world[(x - 1)][(y - 1)][0];
+  } else if (y == 0) {
+    return  world[(x + 1)][y][0] + world[(x + 1)][(y + 1)][0] +
          world[(x - 1)][y][0] + world[(x - 1)][(y + 1)][0] +
-         world[x][(y + 1)][0] + world[(x + 1)][(y - 1)][0] +
+         world[x][(y + 1)][0] + 0 +
+         0 + 0;
+  } else if (y == 9) {
+    return  world[(x + 1)][y][0] + 0 +
+         world[(x - 1)][y][0] + 0 +
+         0 + world[(x + 1)][(y - 1)][0] +
          world[x][(y - 1)][0] + world[(x - 1)][(y - 1)][0];
+  } else {
+    return  world[(x + 1)][y][0] + world[(x + 1)][(y + 1)][0] +
+           world[(x - 1)][y][0] + world[(x - 1)][(y + 1)][0] +
+           world[x][(y + 1)][0] + world[(x + 1)][(y - 1)][0] +
+           world[x][(y - 1)][0] + world[(x - 1)][(y - 1)][0];
+  }
 }
  
 // Convert the pixel coordinates into the actual pixel and display
 void setGridPixelColor(int x, int y, uint32_t c) {
   uint32_t pixel;
-  x--;
-  y--;
   if(ALTERNATE_COLUMNS && x%2 == 1)
   {
     pixel = (x*10) + (9-y);
   } else {
     pixel = (x*10) + y;
   }
-  if(pixel < NUMPIXELS) {
+  if(x < SIZEX && y < SIZEY) {
     strip.setPixelColor(pixel, c);
   }
   strip.show();
